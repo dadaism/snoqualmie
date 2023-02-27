@@ -70,19 +70,22 @@ pub contract SocialGraph {
 
     pub resource interface SocialClient {
         pub fun createUser(name: String): @SocialPassport.NFT
-        pub fun createPost(content: String, refPassport: &SocialPassport.NFT)
+        pub fun createPost(content: String, passportProviderCapability: Capability<&{NonFungibleToken.Provider, SocialPassport.SocialPassportCollectionPublic}>): @SocialPost.NFT 
 
     }
 
     pub resource Client: SocialClient {
-        access(self) let passportMinter: @SocialPassport.Minter
+        // access(self) let passportMinter: @SocialPassport.Minter
+        access(self) let passportMinterCapability: Capability<&{SocialPassport.PassportMinter}>
         access(self) let postMinterCapability: Capability<&{SocialPost.PostMinter}>
 
         pub fun createUser(name: String): @SocialPassport.NFT {
-            return <- self.passportMinter.mintPassport(name: name)
+            // return <- self.passportMinter.mintPassport(name: name)
+            let passport <- self.passportMinterCapability.borrow()!.mintPassport(name: name)
+            return <- passport
         }
 
-        pub fun createPost(content: String, passportProviderCapability: Capability<&{NonFungibleToken.Provider, NonFungibleToken.CollectionPublic}>): @SocialPost.NFT {
+        pub fun createPost(content: String, passportProviderCapability: Capability<&{NonFungibleToken.Provider, SocialPassport.SocialPassportCollectionPublic}>): @SocialPost.NFT {
             // Check whether the Passport is owned by the transaction sender
             let provider = passportProviderCapability.borrow()
             assert(provider != nil, message: "cannot borrow passportProviderCapability. does the sender own the passport?")
@@ -105,14 +108,16 @@ pub contract SocialGraph {
         }
 
         init(
-            passportMinter: @SocialPassport.Minter,
+            passportMinterCapability: Capability<&{SocialPassport.PassportMinter}>,
             postMinterCapability: Capability<&{SocialPost.PostMinter}>
         ) {
-            self.passportMinter <- passportMinter
+            // self.passportMinter <- passportMinter
+            self.passportMinterCapability = passportMinterCapability
+            self.postMinterCapability = postMinterCapability
         }
 
         destroy () {
-            destroy self.passportMinter
+            // destroy self.passportMinter
         }
     }
 
@@ -132,9 +137,10 @@ pub contract SocialGraph {
 
         // Create a Social Client resource
         // borrow a reference to the PassportMinter resource in storage
-        let minter <- self.account.load<@SocialPassport.Minter>(from: SocialPassport.AdminStoragePath)!
+        // let minter <- self.account.load<@SocialPassport.Minter>(from: SocialPassport.AdminStoragePath)!
         let client <- create Client(
-            passportMinter: <- minter, 
+            // passportMinter: <- minter, 
+            passportMinterCapability: self.account.getCapability<&{SocialPassport.PassportMinter}>(SocialPassport.MinterPrivatePath),
             postMinterCapability: self.account.getCapability<&{SocialPost.PostMinter}>(SocialPost.MinterPrivatePath)
         )
         self.account.save(<-client, to: self.ClientStoragePath)

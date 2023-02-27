@@ -72,11 +72,28 @@ pub contract SocialPost: NonFungibleToken {
         }
     }
 
+    // A public collection interface that allows Posts to be borrowed
+    //
+    pub resource interface PostCollectionPublic {
+        pub fun deposit(token: @NonFungibleToken.NFT)
+        pub fun getIDs(): [UInt64]
+        pub fun borrowNFT(id: UInt64): &NonFungibleToken.NFT
+        pub fun borrowPost(id: UInt64): &SocialPost.NFT? {
+            // If the result isn't nil, the id of the returned reference
+            // should be the same as the argument to the function
+            post {
+                (result == nil) || (result?.id == id):
+                    "Cannot borrow Post NFT reference: The ID of the returned reference is incorrect"
+            }
+        }
+    }
+
     // An NFT Collection
     pub resource Collection:
         NonFungibleToken.Provider,
         NonFungibleToken.Receiver,
-        NonFungibleToken.CollectionPublic
+        NonFungibleToken.CollectionPublic,
+        PostCollectionPublic
         // MetadataViews.ResolverCollection
     {
         pub var ownedNFTs: @{UInt64: NonFungibleToken.NFT}
@@ -130,6 +147,16 @@ pub contract SocialPost: NonFungibleToken {
             return (&self.ownedNFTs[id] as auth &NonFungibleToken.NFT?)! as! &SocialPost.NFT
         }
         
+        // borrowPost gets a reference to a Post NFT in the collection
+        //
+        pub fun borrowPost(id: UInt64): &SocialPost.NFT? {
+            pre {
+                self.ownedNFTs[id] != nil: "Post does not exist in the collection!"
+            }
+        
+            return (&self.ownedNFTs[id] as auth &NonFungibleToken.NFT?)! as! &SocialPost.NFT
+            
+        }
         // borrowViewResolver
         // Gets a reference to the MetadataViews resolver in the collection,
         // giving access to all metadata information made available.
@@ -171,6 +198,8 @@ pub contract SocialPost: NonFungibleToken {
                 content: content,
                 passportID: passportID
             )
+
+            SocialPost.nextPostID = SocialPost.nextPostID + 1 as UInt64
 
             return <- post
         }

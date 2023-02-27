@@ -81,14 +81,14 @@ pub contract SocialPassport: NonFungibleToken {
         pub fun deposit(token: @NonFungibleToken.NFT)
         pub fun getIDs(): [UInt64]
         pub fun borrowNFT(id: UInt64): &NonFungibleToken.NFT
-        // pub fun borrowGeniesNFT(id: UInt64): &SocialPassport.NFT? {
-        //     // If the result isn't nil, the id of the returned reference
-        //     // should be the same as the argument to the function
-        //     post {
-        //         (result == nil) || (result?.id == id):
-        //             "Cannot borrow Genies NFT reference: The ID of the returned reference is incorrect"
-        //     }
-        // }
+        pub fun borrowPassport(id: UInt64): &SocialPassport.NFT? {
+            // If the result isn't nil, the id of the returned reference
+            // should be the same as the argument to the function
+            post {
+                (result == nil) || (result?.id == id):
+                    "Cannot borrow Passport reference: The ID of the returned reference is incorrect"
+            }
+        }
     }
 
     // An NFT Collection
@@ -150,6 +150,15 @@ pub contract SocialPassport: NonFungibleToken {
             return (&self.ownedNFTs[id] as auth &NonFungibleToken.NFT?)! as! &SocialPassport.NFT
         }
         
+        // borrowPassport gets a reference to an Passport NFT in the collection
+        //
+        pub fun borrowPassport(id: UInt64): &SocialPassport.NFT? {
+            if self.ownedNFTs[id] != nil {
+                return (&self.ownedNFTs[id] as auth &NonFungibleToken.NFT?)! as! &SocialPassport.NFT
+            } else {
+                return nil
+            }
+        }
         // borrowViewResolver
         // Gets a reference to the MetadataViews resolver in the collection,
         // giving access to all metadata information made available.

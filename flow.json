@@ -1,4 +1,18 @@
 {
+	"emulators": {
+		"default": {
+			"port": 3569,
+			"serviceAccount": "emulator-account"
+		}
+	},
+	"contracts": {
+		"FungibleToken": "./contracts/FungibleToken.cdc",
+		"MetadataViews": "./contracts/MetadataViews.cdc",
+		"NonFungibleToken": "./contracts/NonFungibleToken.cdc",
+		"SocialPassport.cdc": "./contracts/SocialPassport.cdc",
+		"SocialPost.cdc": "./contracts/SocialPost.cdc",
+		"SocialGraph.cdc": "./contracts/SocialGraph.cdc"
+	},
 	"networks": {
 		"emulator": "127.0.0.1:3569",
 		"mainnet": "access.mainnet.nodes.onflow.org:9000",
@@ -8,7 +22,27 @@
 	"accounts": {
 		"emulator-account": {
 			"address": "f8d6e0586b0a20c7",
-			"key": "68edafbab0d6cf5d59ea40961d75953f20c71e92bf925302e578feff6c6b86a2"
+			"key": "66da0cd19772d175babfe03fe7e0b7119c572599f3fad926f70cbfb618ac205d"
+		},
+		"test": {
+			"address": "01cf0e2f2f715450",
+			"key": "80a6e0f5f08dc7a686ea1cf1449be1b28f9552ef0305a0bb4cacc6932ecf2e62"
+		},
+		"test2": {
+			"address": "179b6b1cb6755e31",
+			"key": "d199a969766943eab16a06574e76d5ef39ef8c2ffc460a4585b324b3723862af"
+		}
+	},
+	"deployments": {
+		"emulator": {
+			"emulator-account": [
+				"FungibleToken",
+				"MetadataViews",
+				"NonFungibleToken",
+				"SocialPassport.cdc",
+				"SocialPost.cdc",
+				"SocialGraph.cdc"
+			]
 		}
 	}
 }
